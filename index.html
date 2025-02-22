@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Music Player</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2D3436;
+            --secondary-color: #6c5ce7;
+            --accent-color: #a29bfe;
+            --text-color: #2d3436;
+            --background-color: #f5f6fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: var(--background-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .music-player {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .now-playing {
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            padding: 1.5rem;
+            border-radius: 15px;
+            color: white;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .track-info {
+            position: relative;
+            z-index: 1;
+        }
+
+        .track-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .track-artist {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .waveform-container {
+            margin: 1.5rem 0;
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            height: 60px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.2rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .play-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+        .playlist {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 1rem; 
+    margin-top: 2rem;
+    padding: 0;
+}
+
+.playlist-item {
+    padding: 1rem;
+    background: var(--background-color);
+    border: 1px solid var(--accent-color);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.playlist-item .track-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.playlist-item:hover {
+    background: var(--accent-color);
+    transform: translateY(-5px); 
+    color: white;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.playlist-item.active {
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+}
+
+.track-number {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+    margin-bottom: 0.5rem;
+}
+
+.track-name {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.track-duration {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .playlist {
+        grid-template-columns: repeat(2, 1fr); 
+    }
+}
+
+@media (max-width: 480px) {
+    .playlist {
+        grid-template-columns: 1fr; 
+    }
+}
+
+        .progress-container {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            margin: 1rem 0;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            border-radius: 5px;
+            width: 0%;
+        }
+
+        .volume-control {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .volume-slider {
+            width: 80px;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .equalizer {
+            display: flex;
+            gap: 2px;
+            height: 20px;
+            align-items: flex-end;
+            margin-top: 1rem;
+        }
+
+        .equalizer-bar {
+            width: 3px;
+            background: rgba(255, 255, 255, 0.5);
+            height: 100%;
+            animation: equalize 1s ease-in-out infinite;
+        }
+
+        @keyframes equalize {
+            0%, 100% { height: 40%; }
+            50% { height: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="music-player">
+        <div class="header">
+            <h1>Unknown's Music</h1>
+        </div>
+        <div class="now-playing">
+            <div class="track-info">
+                <div class="track-title">Currently Playing</div>
+                <div class="track-artist">Artist Name</div>
+            </div>
+            <div class="waveform-container">
+                <div id="waveform"></div>
+            </div>
+            <div class="equalizer">
+                <div class="equalizer-bar"></div>
+                <div class="equalizer-bar" style="animation-delay: 0.1s"></div>
+                <div class="equalizer-bar" style="animation-delay: 0.2s"></div>
+                <div class="equalizer-bar" style="animation-delay: 0.3s"></div>
+                <div class="equalizer-bar" style="animation-delay: 0.4s"></div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="controls">
+                <button class="control-btn" id="prevBtn">
+                    <i class="fas fa-backward"></i>
+                </button>
+                <button class="control-btn play-btn" id="playPauseBtn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="control-btn" id="nextBtn">
+                    <i class="fas fa-forward"></i>
+                </button>
+            </div>
+        </div>
+        <ul class="playlist">
+            <li class="playlist-item" data-track="song1.mp3">
+                <div class="track-number">1</div>
+                <div class="track-details">
+                    <div class="track-name">Bawat Sandali</div>
+                    <div class="track-duration">3:45</div>
+                </div>
+            </li>
+            <li class="playlist-item" data-track="song2.mp3">
+                <div class="track-number">2</div>
+                <div class="track-details">
+                    <div class="track-name">Magic Moment</div>
+                    <div class="track-duration">3:29</div>
+                </div>
+            </li>
+            <li class="playlist-item" data-track="song3.mp3">
+                <div class="track-number">3</div>
+                <div class="track-details">
+                    <div class="track-name">Old School</div>
+                    <div class="track-duration">3:40</div>
+                </div>
+            </li>
+            <li class="playlist-item" data-track="forsleep.mp3">
+                <div class="track-number">4</div>
+                <div class="track-details">
+                    <div class="track-name">If you want to sleep</div>
+                    <div class="track-duration">3:19</div>
+                </div>
+            </li>
+            <li class="playlist-item" data-track="Studdyy2.mp3">
+                <div class="track-number">5</div>
+                <div class="track-details">
+                    <div class="track-name">For Study (2)</div>
+                    <div class="track-duration">3:10</div>
+                </div>
+            </li>
+            <li class="playlist-item" data-track="Studyyy.mp3">
+                <div class="track-number">6</div>
+                <div class="track-details">
+                    <div class="track-name">For Study</div>
+                    <div class="track-duration">3:01</div>
+                </div>
+            </li>
+            <li class="playlist-item" data-track="Tulips.mp3">
+                <div class="track-number">7</div>
+                <div class="track-details">
+                    <div class="track-name">Tulips</div>
+                    <div class="track-duration">3:49</div>
+                </div>
+            </li>
+            <li class="playlist-item" data-track="Entry1.mp3">
+                <div class="track-number">8</div>
+                <div class="track-details">
+                    <div class="track-name">Hearts Aligned</div>
+                    <div class="track-duration">3:20</div>
+                </div>
+            </li>
+            <li class="playlist-item" data-track="Pink-Tulips-Dream.mp3">
+                <div class="track-number">9</div>
+                <div class="track-details">
+                    <div class="track-name">Pink Tulips Dream</div>
+                    <div class="track-duration">3:49</div>
+                </div>
+            </li>
+            <li class="playlist-item" data-track="Groove.mp3">
+                <div class="track-number">10</div>
+                <div class="track-details">
+                    <div class="track-name">Groove</div>
+                    <div class="track-duration">3:41</div>
+                </div>
+            </li>
+        </ul>
+        <div class="volume-control">
+            <i class="fas fa-volume-up"></i>
+            <input type="range" class="volume-slider" min="0" max="100" value="80">
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/wavesurfer.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const playlist = document.querySelectorAll('.playlist-item');
+            const progressBar = document.querySelector('.progress-bar');
+            const progressContainer = document.querySelector('.progress-container');
+            const volumeSlider = document.querySelector('.volume-slider');
+
+            let currentTrackIndex = 0;
+            let isPlaying = false;
+
+            const wavesurfer = WaveSurfer.create({
+                container: '#waveform',
+                waveColor: '#d1d8e0',
+                progressColor: '#6c5ce7',
+                barWidth: 2,
+                height: 60,
+                responsive: true,
+                hideScrollbar: true
+            });
+
+            function updateTrackInfo(index) {
+                const track = playlist[index];
+                const trackName = track.querySelector('.track-name').textContent;
+                const artistName = track.querySelector('.track-artist')?.textContent || 'Unknown Artist';
+
+                document.querySelector('.track-title').textContent = trackName;
+                document.querySelector('.track-artist').textContent = artistName;
+            }
+
+            function loadTrack(index) {
+                const track = playlist[index];
+                const trackSrc = track.dataset.track;
+
+                wavesurfer.load(trackSrc);
+                updateTrackInfo(index);
+            }
+
+            function playPauseTrack() {
+                if (isPlaying) {
+                    wavesurfer.pause();
+                    playPauseBtn.querySelector('i').classList.replace('fa-pause', 'fa-play');
+                } else {
+                    wavesurfer.play();
+                    playPauseBtn.querySelector('i').classList.replace('fa-play', 'fa-pause');
+                }
+                isPlaying = !isPlaying;
+            }
+
+            function changeTrack(step) {
+                currentTrackIndex = (currentTrackIndex + step + playlist.length) % playlist.length;
+                loadTrack(currentTrackIndex);
+                playPauseTrack();
+            }
+            playPauseBtn.addEventListener('click', playPauseTrack);
+
+            prevBtn.addEventListener('click', () => changeTrack(-1));
+            nextBtn.addEventListener('click', () => changeTrack(1));
+
+            playlist.forEach((item, index) => {
+                item.addEventListener('click', () => {
+                    currentTrackIndex = index;
+                    loadTrack(currentTrackIndex);
+                    playPauseTrack();
+                });
+            });
+
+            wavesurfer.on('audioprocess', function() {
+                const currentTime = wavesurfer.getCurrentTime();
+                const duration = wavesurfer.getDuration();
+                const progress = (currentTime / duration) * 100;
+                progressBar.style.width = progress + '%';
+            });
+
+            progressContainer.addEventListener('click', function(e) {
+                const totalWidth = this.offsetWidth;
+                const clickX = e.offsetX;
+                const seekTime = (clickX / totalWidth) * wavesurfer.getDuration();
+                wavesurfer.setCurrentTime(seekTime);
+            });
+
+            volumeSlider.addEventListener('input', function() {
+                const volume = this.value / 100;
+                wavesurfer.setVolume(volume);
+            });
+
+            loadTrack(currentTrackIndex);
+        });
+    </script>
+</body>
+</html>
