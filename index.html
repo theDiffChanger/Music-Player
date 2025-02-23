@@ -381,6 +381,7 @@
 
             let currentTrackIndex = 0;
             let isPlaying = false;
+            let autoplayEnabled = true; // New variable to track autoplay state
 
             const wavesurfer = WaveSurfer.create({
                 container: '#waveform',
@@ -399,6 +400,10 @@
 
                 document.querySelector('.track-title').textContent = trackName;
                 document.querySelector('.track-artist').textContent = artistName;
+
+                // Update active track styling
+                playlist.forEach(item => item.classList.remove('active'));
+                playlist[index].classList.add('active');
             }
 
             function loadTrack(index) {
@@ -423,9 +428,27 @@
             function changeTrack(step) {
                 currentTrackIndex = (currentTrackIndex + step + playlist.length) % playlist.length;
                 loadTrack(currentTrackIndex);
-                playPauseTrack();
+                if (autoplayEnabled) {
+                    wavesurfer.on('ready', function() {
+                        wavesurfer.play();
+                        playPauseBtn.querySelector('i').classList.replace('fa-play', 'fa-pause');
+                        isPlaying = true;
+                    });
+                }
             }
-            playPauseBtn.addEventListener('click', playPauseTrack);
+
+            // Add event listener for track finish
+            wavesurfer.on('finish', function() {
+                if (autoplayEnabled) {
+                    changeTrack(1); // Play next track when current track finishes
+                }
+            });
+
+            playPauseBtn.addEventListener('click', function() {
+                playPauseTrack();
+                // Update autoplay state when manually paused
+                autoplayEnabled = isPlaying;
+            });
 
             prevBtn.addEventListener('click', () => changeTrack(-1));
             nextBtn.addEventListener('click', () => changeTrack(1));
@@ -434,7 +457,12 @@
                 item.addEventListener('click', () => {
                     currentTrackIndex = index;
                     loadTrack(currentTrackIndex);
-                    playPauseTrack();
+                    autoplayEnabled = true; // Enable autoplay when manually selecting a track
+                    wavesurfer.on('ready', function() {
+                        wavesurfer.play();
+                        playPauseBtn.querySelector('i').classList.replace('fa-play', 'fa-pause');
+                        isPlaying = true;
+                    });
                 });
             });
 
@@ -457,6 +485,7 @@
                 wavesurfer.setVolume(volume);
             });
 
+            // Initialize the first track
             loadTrack(currentTrackIndex);
         });
     </script>
